@@ -22,6 +22,7 @@ on:
 
 jobs:
   docker:
+    # This was originally a self-hosted group. But changed for the sake of tests
     runs-on: ubuntu-latest
     env:
       DOCKER_BUILDKIT: 1
@@ -64,7 +65,8 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      # This was originally a docker login. But changed for the sake of tests
+        run: echo ' "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin'
 
       - name: Set up Docker Buildx
         id: buildx
