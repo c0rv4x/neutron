@@ -68,19 +68,19 @@ jobs:
       # This was originally a docker login. But changed for the sake of tests
         run: echo ' "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin'
 
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          version: "lab:latest"
-          driver: cloud
-          endpoint: "neutronorg/neutron"
-          install: true
+      # - name: Set up Docker Buildx
+      #   id: buildx
+      #   uses: docker/setup-buildx-action@v3
+      #   with:
+      #     version: "lab:latest"
+      #     driver: cloud
+      #     endpoint: "neutronorg/neutron"
+      #     install: true
 
       - name: Build and push Docker image
         env:
           VERSION: ${{ env.VERSION }}
-          BUILDER: ${{ steps.buildx.outputs.name }}
+          BUILDER: a #${{ steps.buildx.outputs.name }}
         run: |
           docker buildx use $BUILDER
           make build-static-linux-amd64
