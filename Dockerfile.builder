@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG GO_VERSION="1.22"
-ARG RUNNER_IMAGE="gcr.io/distroless/static"
+ARG RUNNER_IMAGE="gcr.io/distroless/static:nonroot"
 
 # --------------------------------------------------------
 # Builder
@@ -19,7 +19,8 @@ ENV GOTOOLCHAIN go1.22.6
 RUN apk add --no-cache \
     ca-certificates \
     build-base \
-    linux-headers
+    linux-headers \
+    wget
 
 # Download go dependencies
 WORKDIR /neutron
@@ -28,13 +29,12 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     go mod download
 
-# Cosmwasm - Download correct libwasmvm version
+# Cosmwasm - Download and verify libwasmvm version
 RUN WASMVM_VERSION=$(go list -m github.com/CosmWasm/wasmvm/v2 | cut -d ' ' -f 2) && \
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/libwasmvm_muslc.$(uname -m).a \
       -O /lib/libwasmvm_muslc.$(uname -m).a && \
-    # verify checksum
     wget https://github.com/CosmWasm/wasmvm/releases/download/$WASMVM_VERSION/checksums.txt -O /tmp/checksums.txt && \
-    sha256sum /lib/libwasmvm_muslc.$(uname -m).a | grep $(cat /tmp/checksums.txt | grep libwasmvm_muslc.$(uname -m) | cut -d ' ' -f 1)
+    sha256sum /lib/libwasmvm_muslc.$(uname -m).a | grep $(grep libwasmvm_muslc.$(uname -m) /tmp/checksums.txt | cut -d ' ' -f 1)
 
 # Copy the remaining files
 COPY . .
@@ -45,8 +45,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go build \
       -mod=readonly \
       -tags ${BUILD_TAGS} \
-      -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name="neutron" \
-              -X github.com/cosmos/cosmos-sdk/version.AppName="neutrond" \
+      -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=neutron \
+              -X github.com/cosmos/cosmos-sdk/version.AppName=neutrond \
               -X github.com/cosmos/cosmos-sdk/version.Version=${GIT_VERSION} \
               -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
               -X github.com/cosmos/cosmos-sdk/version.BuildTags='${BUILD_TAGS}' \
@@ -66,6 +66,8 @@ COPY --from=builder /neutron/build/neutrond /bin/neutrond
 
 ENV HOME /neutron
 WORKDIR $HOME
+
+USER nonroot
 
 EXPOSE 26656
 EXPOSE 26657
