@@ -45,8 +45,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go build \
       -mod=readonly \
       -tags ${BUILD_TAGS} \
-      -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name="neutron" \
-              -X github.com/cosmos/cosmos-sdk/version.AppName="neutrond" \
+      -ldflags "-X github.com/cosmos/cosmos-sdk/version.Name=neutron \
+              -X github.com/cosmos/cosmos-sdk/version.AppName=neutrond \
               -X github.com/cosmos/cosmos-sdk/version.Version=${GIT_VERSION} \
               -X github.com/cosmos/cosmos-sdk/version.Commit=${GIT_COMMIT} \
               -X github.com/cosmos/cosmos-sdk/version.BuildTags='${BUILD_TAGS}' \
